@@ -9,6 +9,9 @@ from nltk.corpus import stopwords
 from collections import Counter
 from nltk import word_tokenize
 from nltk.util import ngrams
+import csv
+
+extracted_information = {}
 
 # nltk.download("averaged_perceptron_tagger")
 nlp = spacy.load("en_core_web_sm")
@@ -145,7 +148,7 @@ def Education(text):
         batch = None
 
     # print(text)
-
+    extracted_information["Education"] = {college_name, branch_name, batch, cgpa_matches[0]}
     print("College: ", college_name)
     # print("College: ", college_names_[1])
     # print("College: ", college_names_[2])
@@ -265,7 +268,7 @@ def extract_keywords(text, n=5):
 #     return cleaned_achievements
 
 
-resume = Parse_Resume("s5.pdf")
+resume = Parse_Resume("resume.pdf")
 cleanoutput = resume.Block_converter()
 # print(cleanoutput)
 
@@ -319,6 +322,9 @@ for i in range(0, len(cleanoutput)):
 phone_number = re.search(r"\+\d{2}-\d{10}", final_text)
 phone_number = phone_number.group() if phone_number else None
 
+extracted_information["Phone Number"] = phone_number
+extracted_information["emails"] = formatted_Emails
+
 print("Phone No: ", phone_number)
 print("Email: ", formatted_Emails)
 print("\n")
@@ -355,6 +361,12 @@ def process_achievements(text):
     # for achievement in achievements:
     #     print(achievement)
 
+def write_to_csv(data_items):
+    data_dict = dict(data_items)
+    with open('resume_information.csv', mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=data_dict.keys())
+        writer.writeheader()
+        writer.writerow(data_dict)
 
 entity_processors = {
     "skills": process_skills,
@@ -381,4 +393,7 @@ for entity, text in extracted_text.items():
         result = entity_processors[entity_lower](text)
         if result is not None:
             print(result)
+            extracted_information[entity] = result
             print("\n")
+
+write_to_csv(extracted_information.items())
